@@ -8,6 +8,8 @@ end
 
 
 function zrb
+    git stash
     git fetch origin
     git rebase -i origin/main --autosquash
+    git stash pop
 end
