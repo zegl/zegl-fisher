@@ -8,6 +8,12 @@ end
 
 
 function zrb
+    git fetch origin
+    git rebase -i origin/main --autosquash
+end
+
+
+function zrbs
     git stash
     git fetch origin
     git rebase -i origin/main --autosquash
