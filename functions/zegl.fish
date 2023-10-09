@@ -24,6 +24,10 @@ function zfup
     git log -n 50 --pretty=format:'%h %s' --no-merges | fzf | cut -c -7 | xargs -o git commit --fixup
 end
 
+function zpp
+    git push -u origin HEAD --force
+end
+
 
 function znotify --description "znotify <title> <message>"
     set title $argv[1]
