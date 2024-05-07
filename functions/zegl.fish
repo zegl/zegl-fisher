@@ -1,6 +1,15 @@
+function ztrunkname
+    if git rev-parse --verify main &> /dev/null ;
+        echo "origin/main"
+    else
+        echo "origin/master"
+    end
+end
+
 function zpr
+    set trunk $(ztrunkname)
     git fetch origin
-    git rebase -i origin/main --autosquash
+    git rebase -i $trunk --autosquash
     git push -u origin HEAD --force
     gh pr create --fill
     gh pr merge --auto
@@ -9,14 +18,14 @@ end
 
 function zrb
     git fetch origin
-    git rebase -i origin/main --autosquash
+    git rebase -i $(ztrunkname) --autosquash
 end
 
 
 function zrbs
     git stash
     git fetch origin
-    git rebase -i origin/main --autosquash
+    git rebase -i $(ztrunkname) --autosquash
     git stash pop
 end
 
