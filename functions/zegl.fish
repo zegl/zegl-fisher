@@ -34,6 +34,19 @@ function zfup
 end
 
 function zpp
+    set trunkname $(ztrunkname)
+    set current_branch_name (git branch --show-current)
+
+    # if on trunk, warn and exit
+    if test $current_branch_name = $trunkname
+        echo "You are on the trunk branch. Are you sure that you want to force push it? (y/n)"
+        read -k1 -n1
+        echo
+        if test $REPLY != "y"
+            exit 1
+        end
+    end
+
     git push -u origin HEAD --force
 end
 
@@ -82,6 +95,13 @@ function zfuture
 
     set_color green; echo "Z: All done, welcome to the future!"
     set_color normal;
+end
+
+function zco
+    set branch $(git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short)' | head -n 20 | fzf)
+    if test -n "$branch"
+        git checkout $branch
+    end
 end
 
 function znotify --description "znotify <title> <message>"
