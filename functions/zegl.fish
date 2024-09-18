@@ -1,4 +1,4 @@
-function ztrunkname
+function ztrunkname --description "Get the name of the trunk branch"
     if git rev-parse --verify main &> /dev/null ;
         echo "origin/main"
     else
@@ -6,7 +6,7 @@ function ztrunkname
     end
 end
 
-function zpr
+function zpr --description "Create a PR"
     set trunk $(ztrunkname)
     git fetch origin
     git rebase -i $trunk --autosquash
@@ -15,42 +15,36 @@ function zpr
     gh pr merge --auto
 end
 
-
-function zrb
+function zrb --description "Rebase on the trunk. Will use autosquash to automatically fixup commits created with zfup"
     git fetch origin
     git rebase -i $(ztrunkname) --autosquash
 end
 
-
-function zrbs
+function zrbs --description "Rebase on the trunk with stash"
     git stash
     git fetch origin
     git rebase -i $(ztrunkname) --autosquash
     git stash pop
 end
 
-function zfup
+function zfup --description "Create a fixup commit interactively"
     git log -n 50 --pretty=format:'%h %s' --no-merges | fzf | cut -c -7 | xargs -o git commit --fixup
 end
 
-function zpp
+function zpp --description "Force push the current branch to the remote"
     set trunkname $(ztrunkname)
     set current_branch_name (git branch --show-current)
 
     # if on trunk, warn and exit
-    if test $current_branch_name = $trunkname
-        echo "You are on the trunk branch. Are you sure that you want to force push it? (y/n)"
-        read -k1 -n1
-        echo
-        if test $REPLY != "y"
-            exit 1
-        end
+    if test "origin/$current_branch_name" = $trunkname
+        echo "🚫 You are on the trunk branch. Refusing to fource push it, sorry! 🚫"
+        exit 1
     end
 
     git push -u origin HEAD --force
 end
 
-function zfuture
+function zfuture --description "Cherry pick all unmerged PRs into a new branch"
     set trunkname $(ztrunkname)
     set ghusername $(gh api user | jq -r '.login')
 
@@ -97,7 +91,7 @@ function zfuture
     set_color normal;
 end
 
-function zco
+function zco --description "Interactive branch checkout"
     set branch $(git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short)' | head -n 20 | fzf)
     if test -n "$branch"
         git checkout $branch
