@@ -38,7 +38,7 @@ function zpp --description "Force push the current branch to the remote"
     # if on trunk, warn and exit
     if test "origin/$current_branch_name" = $trunkname
         echo "🚫 You are on the trunk branch. Refusing to fource push it, sorry! 🚫"
-        exit 1
+        return 1
     end
 
     git push -u origin HEAD --force
@@ -51,7 +51,7 @@ function zfuture --description "Cherry pick all unmerged PRs into a new branch"
     # if on branch tmp_future, warn and exit
     if test (git branch --show-current) = "tmp_future"
         echo "You are on the tmp_future branch, please switch to another branch before running this script"
-        exit 1
+        return 1
     end
 
     set_color green; echo "Z: Preparing..."
@@ -96,6 +96,10 @@ function zco --description "Interactive branch checkout"
     if test -n "$branch"
         git checkout $branch
     end
+end
+
+function zreflog --description "Show reflog and preview commits"
+    git reflog | fzf --preview 'git show {1}' --preview-window=right:70%
 end
 
 function znotify --description "znotify <title> <message>"
