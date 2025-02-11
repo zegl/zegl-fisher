@@ -108,3 +108,7 @@ function znotify --description "znotify <title> <message>"
     curl -X POST "https://sn.30cm.org/v1/push" -H 'Content-Type: application/json' -d '{"auth":"'"$SN_30CM_ORG_AUTH"'","message":"'"$argv"'", "title":"'"$title"'"}'
     echo "Sent! 🔔"
 end
+
+function zprl --description "Create a pretty link to the current branch"
+    gh pr view --json title,number,additions,deletions,url --template '\`(+{{.additions}}/-{{.deletions}})\` {{.title}} [#{{.number}}]({{.url}})'"
+end
