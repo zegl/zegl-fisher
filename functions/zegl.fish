@@ -110,5 +110,5 @@ function znotify --description "znotify <title> <message>"
 end
 
 function zprl --description "Create a pretty link to the current branch"
-    gh pr view --json title,number,additions,deletions,url --template '\`(+{{.additions}}/-{{.deletions}})\` {{.title}} [#{{.number}}]({{.url}})'"
+    gh pr view --json title,number,additions,deletions,url --template '\`(+{{.additions}}/-{{.deletions}})\` {{.title}} [#{{.number}}]({{.url}})'
 end
