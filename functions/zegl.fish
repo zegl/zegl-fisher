@@ -112,3 +112,7 @@ end
 function zprl --description "Create a pretty link to the current branch"
     gh pr view --json title,number,additions,deletions,url --template '\`(+{{.additions}}/-{{.deletions}})\` {{.title}} [#{{.number}}]({{.url}})'
 end
+
+function zgr --description "cd to git root"
+    cd (git rev-parse --show-toplevel)
+end
