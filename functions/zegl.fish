@@ -110,35 +110,42 @@ function zgr --description "cd to git root"
     cd (git rev-parse --show-toplevel)
 end
 
-function zc --description "Start a new Claude Code session or resume one from the last 7 days in this dir"
+function __zc_sessions --description "List Claude Code sessions for this dir active in the last <days> days"
     set -l project_dir ~/.claude/projects/(string replace -ar '[^a-zA-Z0-9]' '-' $PWD)
     # sessions-index.json stopped being updated, read titles from the transcripts instead
-    set -l files (find $project_dir -maxdepth 1 -name '*.jsonl' -mtime -7 2>/dev/null)
+    set -l files (find $project_dir -maxdepth 1 -name '*.jsonl' -mtime -$argv[1] 2>/dev/null)
+    test (count $files) -eq 0; and return
 
-    set -l sessions
-    if test (count $files) -gt 0
-        set sessions (jq -rn '
-            def day: localtime | strftime("%Y-%m-%d");
-            def epoch: .[0:19] + "Z" | fromdate;
-            def pretty: epoch as $t
-                | ($t | day) as $d
-                | (if $d == (now | day) then "Today" elif $d == (now - 86400 | day) then "Yesterday" else $t | localtime | strftime("%a") end)
-                | (. + "         ")[0:9] + " " + ($t | localtime | strftime("%H:%M"));
-            reduce inputs as $l ({}; (input_filename | split("/") | last | rtrimstr(".jsonl")) as $id
-                | .[$id].ts = ($l.timestamp // .[$id].ts)
-                | if $l.type == "ai-title" then .[$id].title = $l.aiTitle else . end
-                | if .[$id].prompt == null and $l.type == "user" and ($l.isMeta | not)
-                    and ($l.message.content | type) == "string" and ($l.message.content | startswith("<") | not)
-                  then .[$id].prompt = $l.message.content else . end)
-            # file mtime can be bumped without activity, filter on the last message instead
-            | to_entries[] | select(.value.ts and (.value.title // .value.prompt) and (.value.ts | epoch) > now - 7 * 86400)
-            | [.value.ts, (.value.ts | pretty), .key, ((.value.title // .value.prompt) | gsub("[\r\n\t ]+"; " ") | .[0:100])] | @tsv
-        ' $files 2>/dev/null | sort -r | while read -l -d \t ts when id title
-            echo $when\t$title\t$id
-        end)
+    jq -rn --argjson days $argv[1] '
+        def day: localtime | strftime("%Y-%m-%d");
+        def epoch: .[0:19] + "Z" | fromdate;
+        def pretty: epoch as $t
+            | ($t | day) as $d
+            | (if $d == (now | day) then "Today"
+               elif $d == (now - 86400 | day) then "Yesterday"
+               elif $t > now - 6 * 86400 then $t | localtime | strftime("%a")
+               else $t | localtime | strftime("%b %d") end)
+            | (. + "         ")[0:9] + " " + ($t | localtime | strftime("%H:%M"));
+        reduce inputs as $l ({}; (input_filename | split("/") | last | rtrimstr(".jsonl")) as $id
+            | .[$id].ts = ($l.timestamp // .[$id].ts)
+            | if $l.type == "ai-title" then .[$id].title = $l.aiTitle else . end
+            | if .[$id].prompt == null and $l.type == "user" and ($l.isMeta | not)
+                and ($l.message.content | type) == "string" and ($l.message.content | startswith("<") | not)
+              then .[$id].prompt = $l.message.content else . end)
+        # file mtime can be bumped without activity, filter on the last message instead
+        | to_entries[] | select(.value.ts and (.value.title // .value.prompt) and (.value.ts | epoch) > now - $days * 86400)
+        | [.value.ts, (.value.ts | pretty), .key, ((.value.title // .value.prompt) | gsub("[\r\n\t ]+"; " ") | .[0:100])] | @tsv
+    ' $files 2>/dev/null | sort -r | while read -l -d \t ts when id title
+        echo $when\t$title\t$id
     end
+end
 
-    set -l choice (printf '%s\n' "+ New session" $sessions | fzf --delimiter \t --with-nth 1,2 --no-sort --height 40% --reverse --prompt "claude> ")
+function zc --description "Start a new Claude Code session or resume one from the last 7 days in this dir"
+    set -l more "… All sessions from the last 180 days"
+    set -l choice (printf '%s\n' "+ New session" (__zc_sessions 7) $more | fzf --delimiter \t --with-nth 1,2 --no-sort --height 40% --reverse --prompt "claude> ")
+    if test "$choice" = "$more"
+        set choice (printf '%s\n' "+ New session" (__zc_sessions 180) | fzf --delimiter \t --with-nth 1,2 --no-sort --height 40% --reverse --prompt "claude (180d)> ")
+    end
     test -z "$choice"; and return
 
     set -l session_id (string split \t $choice)[3]
