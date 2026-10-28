@@ -102,13 +102,6 @@ function zreflog --description "Show reflog and preview commits"
     git reflog | fzf --preview 'git show {1}' --preview-window=right:70%
 end
 
-function znotify --description "znotify <title> <message>"
-    set title $argv[1]
-    set --erase argv[1]
-    curl -X POST "https://sn.30cm.org/v1/push" -H 'Content-Type: application/json' -d '{"auth":"'"$SN_30CM_ORG_AUTH"'","message":"'"$argv"'", "title":"'"$title"'"}'
-    echo "Sent! 🔔"
-end
-
 function zprl --description "Create a pretty link to the current branch"
     gh pr view --json title,number,additions,deletions,url --template '\`(+{{.additions}}/-{{.deletions}})\` {{.title}} [#{{.number}}]({{.url}})'
 end
