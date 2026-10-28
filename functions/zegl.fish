@@ -117,7 +117,7 @@ function zgr --description "cd to git root"
     cd (git rev-parse --show-toplevel)
 end
 
-function c --description "Start a new Claude Code session or resume one from the last 7 days in this dir"
+function zc --description "Start a new Claude Code session or resume one from the last 7 days in this dir"
     set -l project_dir ~/.claude/projects/(string replace -ar '[^a-zA-Z0-9]' '-' $PWD)
     # sessions-index.json stopped being updated, read titles from the transcripts instead
     set -l files (find $project_dir -maxdepth 1 -name '*.jsonl' -mtime -7 2>/dev/null)

@@ -1,6 +1,6 @@
 # zegl-fisher 🎣
 
-Git for cool kids.
+Fish for cool kids.
 
 Aliases, functions, etc for [fish](https://fishshell.com/) with [fisher](https://github.com/jorgebucaran/fisher).
 
@@ -17,6 +17,7 @@ fisher install zegl/zegl-fisher
 * `zpp` – Force push the current branch to the remote
 * `zfuture` – Cherry pick all unmerged PRs into a new branch
 * `zco` – Interactive branch checkout
+* `zc` – Start a new Claude Code session or resume one from the last 7 days in this dir (fzf)
 
 ### Low level functions
 
