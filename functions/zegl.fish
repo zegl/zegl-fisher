@@ -102,8 +102,24 @@ function zreflog --description "Show reflog and preview commits"
     git reflog | fzf --preview 'git show {1}' --preview-window=right:70%
 end
 
-function zprl --description "Create a pretty link to the current branch"
-    gh pr view --json title,number,additions,deletions,url --template '\`(+{{.additions}}/-{{.deletions}})\` {{.title}} [#{{.number}}]({{.url}})'
+function zprl --description "Copy a pretty link to the current branch as rich text"
+    zprlhtmlcopy
+end
+
+function zprlmd --description "Create a pretty markdown link to the current branch"
+    gh pr view --json title,number,additions,deletions,url --template '`(+{{.additions}}/-{{.deletions}})` {{.title}} [#{{.number}}]({{.url}})'
+end
+
+function zprlhtml --description "Create a pretty HTML link to the current branch"
+    gh pr view --json title,number,additions,deletions,url --template '<code>(+{{.additions}}/-{{.deletions}})</code> {{html .title}} <a href="{{.url}}">#{{.number}}</a>'
+end
+
+function zprlhtmlcopy --description "Copy a pretty link to the current branch as rich text"
+    set -l html (zprlhtml)
+    or return
+    set -l plain (zprlmd)
+    osascript -l JavaScript -e 'function run(a){ObjC.import("AppKit");const p=$.NSPasteboard.generalPasteboard;p.clearContents;p.setStringForType($(a[0]),$.NSPasteboardTypeHTML);p.setStringForType($(a[1]),$.NSPasteboardTypeString)}' $html $plain >/dev/null
+    echo $html
 end
 
 function zgr --description "cd to git root"
