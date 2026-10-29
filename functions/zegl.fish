@@ -120,6 +120,7 @@ function zprlhtmlcopy --description "Copy a pretty link to the current branch as
     set -l plain (zprlmd)
     osascript -l JavaScript -e 'function run(a){ObjC.import("AppKit");const p=$.NSPasteboard.generalPasteboard;p.clearContents;p.setStringForType($(a[0]),$.NSPasteboardTypeHTML);p.setStringForType($(a[1]),$.NSPasteboardTypeString)}' $html $plain >/dev/null
     echo $html
+    echo "Copied to clipboard" >&2
 end
 
 function zgr --description "cd to git root"
